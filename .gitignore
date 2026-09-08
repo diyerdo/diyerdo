@@ -34,3 +34,4 @@ go.work.sum
 
 .omp/
 .serena/
+node_modules/
