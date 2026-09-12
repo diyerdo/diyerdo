@@ -137,22 +137,3 @@ func (t *DodugoWrapper) GetEquipmentRecipe(ankamaId int32) ([]dodugo.Recipe, err
 
 	return item.GetRecipe(), nil
 }
-
-// dodugoItemsToEquipments converts a slice of dodugo.ListItem to a slice of equipments.Equipment
-func (t *DodugoWrapper) DodugoItemsToEquipments(items []dodugo.ListItem) ([]*equipments.Equipment, error) {
-	if items == nil {
-		return nil, status.Error(codes.InvalidArgument, "received a `nil` items list")
-	}
-
-	equipments := make([]*equipments.Equipment, len(items))
-	for i, item := range items {
-		equipment, err := models.NewEquipment(*item.AnkamaId, *item.Name, *item.Level, *item.ImageUrls.Icon)
-		if err != nil {
-			return nil, err
-		}
-
-		equipments[i] = equipment.ToProto()
-	}
-
-	return equipments, nil
-}

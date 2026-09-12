@@ -20,8 +20,10 @@
 package core
 
 import (
+	"github.com/diyerdo/diyerdo/internal/services/equipments/models"
 	"github.com/diyerdo/diyerdo/internal/shared/utils"
 	"github.com/diyerdo/proto/gen/go/proto/equipments/v1"
+	"github.com/dofusdude/dodugo"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -54,7 +56,7 @@ func (t *EquipmentsCore) GetEquipmentFromNameAndCategory(name string, category *
 		return nil, err
 	}
 
-	convertedItems, err := dodugo.DodugoItemsToEquipments(items)
+	convertedItems, err := dodugoItemsToEquipments(items)
 	if err != nil {
 		return nil, err
 	}
@@ -148,4 +150,23 @@ func equipmentCategoryToString(category *equipments.EquipmentCategory) (*string,
 	}
 
 	return &str, nil
+}
+
+// dodugoItemsToEquipments converts a slice of dodugo.ListItem to a slice of equipments.Equipment
+func dodugoItemsToEquipments(items []dodugo.ListItem) ([]*equipments.Equipment, error) {
+	if items == nil {
+		return nil, status.Error(codes.InvalidArgument, "received a `nil` items list")
+	}
+
+	equipments := make([]*equipments.Equipment, len(items))
+	for i, item := range items {
+		equipment, err := models.NewEquipment(*item.AnkamaId, *item.Name, *item.Level, *item.ImageUrls.Icon)
+		if err != nil {
+			return nil, err
+		}
+
+		equipments[i] = equipment.ToProto()
+	}
+
+	return equipments, nil
 }
