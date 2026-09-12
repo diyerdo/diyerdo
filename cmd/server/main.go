@@ -22,8 +22,10 @@ package main
 import (
 	"net"
 
-	"github.com/diyerdo/diyerdo/internal/services/equipments/api"
+	equipmentsApi "github.com/diyerdo/diyerdo/internal/services/equipments/api"
+	recipesApi "github.com/diyerdo/diyerdo/internal/services/recipes/api"
 	"github.com/diyerdo/proto/gen/go/proto/equipments/v1"
+	"github.com/diyerdo/proto/gen/go/proto/recipes/v1"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/rs/zerolog/pkgerrors"
@@ -59,8 +61,12 @@ func listener() net.Listener {
 // registerServices is a helper function to register the gRPC services
 func registerServicesGrpc(server *grpc.Server) {
 	// Equipments service
-	equipmentsService := instanciateService(api.NewEquipmentsService)
+	equipmentsService := instanciateService(equipmentsApi.NewEquipmentsService)
 	equipments.RegisterEquipmentsServiceServer(server, equipmentsService.Server)
+
+	// Recipes service
+	recipesService := instanciateService(recipesApi.NewRecipesService)
+	recipes.RegisterRecipesServiceServer(server, recipesService.Server)
 }
 
 // instanciateService is a helper function to instanciate a service. It returns
