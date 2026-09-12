@@ -20,8 +20,7 @@
 package api
 
 import (
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	"github.com/diyerdo/diyerdo/internal/services/equipments/core"
 )
 
 // EquipmentsService represents the equipments service
@@ -31,9 +30,14 @@ type EquipmentsService struct {
 
 // NewEquipmentsService creates a new equipments service instance
 func NewEquipmentsService() (*EquipmentsService, error) {
-	server := newServer()
-	if server == nil {
-		return nil, status.Error(codes.Internal, "failed to instanciate gRPC server ; gRPC server is `nil`")
+	core, err := core.NewEquipmentsCore()
+	if err != nil {
+		return nil, err
+	}
+
+	server, err := newServer(core)
+	if err != nil {
+		return nil, err
 	}
 
 	return &EquipmentsService{Server: server}, nil
