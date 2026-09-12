@@ -22,5 +22,6 @@
 
 grpcui -plaintext \
   -import-path ../proto/proto \
-  -proto equipments/v1/equipments.proto \
+  -proto equipments/v1/equipments.proto  \
+  -proto recipes/v1/recipes.proto \
   localhost:58180
