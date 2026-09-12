@@ -94,6 +94,50 @@ func (t *DodugoWrapper) GetEquipmentByNameAndCategory(name string, category stri
 	return items, nil
 }
 
+// GetEquipmentRecipe gets an equipment item's recipe by its ankama id
+func (t *DodugoWrapper) GetEquipmentRecipe(ankamaId int32) ([]dodugo.Recipe, error) {
+	item, resp, err := t.client.
+		EquipmentAPI.
+		GetItemsEquipmentSingle(context.Background(), "fr", ankamaId, "dofus3").
+		Execute()
+
+	if err != nil {
+		if resp != nil && resp.StatusCode == 404 {
+			return nil, status.Errorf(
+				codes.NotFound,
+				"no equipment found with id '%d'",
+				ankamaId,
+			)
+		}
+
+		return nil, status.Errorf(
+			codes.Internal,
+			"an error occured while trying to retrieve equipment '%d': %v",
+			ankamaId,
+			err,
+		)
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, status.Errorf(
+			codes.Internal,
+			"an error occured while trying to retrieve equipment '%d' ; status code %s",
+			ankamaId,
+			resp.Status,
+		)
+	}
+
+	if item == nil {
+		return nil, status.Errorf(
+			codes.NotFound,
+			"no equipment found with id '%d'",
+			ankamaId,
+		)
+	}
+
+	return item.GetRecipe(), nil
+}
+
 // dodugoItemsToEquipments converts a slice of dodugo.ListItem to a slice of equipments.Equipment
 func (t *DodugoWrapper) DodugoItemsToEquipments(items []dodugo.ListItem) ([]*equipments.Equipment, error) {
 	if items == nil {
