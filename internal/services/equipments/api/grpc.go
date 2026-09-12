@@ -22,6 +22,7 @@ package api
 import (
 	"context"
 
+	"github.com/diyerdo/diyerdo/internal/services/equipments/core"
 	"github.com/diyerdo/proto/gen/go/proto/equipments/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -30,11 +31,16 @@ import (
 // server represents the Equipments service gRPC server
 type server struct {
 	equipments.UnimplementedEquipmentsServiceServer
+	core *core.EquipmentsCore
 }
 
 // NewServer returns a new instance of the Equipments service gRPC server
-func newServer() *server {
-	return &server{}
+func newServer(core *core.EquipmentsCore) (*server, error) {
+	if core == nil {
+		return nil, status.Error(codes.InvalidArgument, "received a `nil` core")
+	}
+
+	return &server{core: core}, nil
 }
 
 // GetEquipmentFromNameAndCategory returns the equipment from the given name and category
@@ -43,7 +49,12 @@ func (t *server) GetEquipmentFromNameAndCategory(ctx context.Context, request *e
 		return nil, err
 	}
 
-	return &equipments.GetEquipmentFromNameAndCategoryResponse{}, nil
+	equipmentItems, err := t.core.GetEquipmentFromNameAndCategory(request.Name, &request.Category)
+	if err != nil {
+		return nil, err
+	}
+
+	return &equipments.GetEquipmentFromNameAndCategoryResponse{EquipmentItems: equipmentItems}, nil
 }
 
 // validateGetEquipmentFromNameAndCategoryRequest is a helper function that
