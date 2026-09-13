@@ -57,6 +57,20 @@ func (t *server) GetRecipeForEquipment(ctx context.Context, request *recipes.Get
 	return &recipes.GetRecipeForEquipmentResponse{Recipes: recipesList}, nil
 }
 
+// GetRecipeForResource returns the recipe for the given resource
+func (t *server) GetRecipeForResource(ctx context.Context, request *recipes.GetRecipeForResourceRequest) (*recipes.GetRecipeForResourceResponse, error) {
+	if err := validateGetRecipeForResourceRequest(request); err != nil {
+		return nil, err
+	}
+
+	recipesList, err := t.core.GetRecipeForResource(request.ResourceId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &recipes.GetRecipeForResourceResponse{Recipes: recipesList}, nil
+}
+
 // validateGetRecipeForEquipmentRequest is a helper function that
 // validates the GetRecipeForEquipmentRequest RPC ensuring:
 //   - the request is not `nil`
@@ -68,6 +82,22 @@ func validateGetRecipeForEquipmentRequest(request *recipes.GetRecipeForEquipment
 
 	if request.EquipmentId < 1 {
 		return status.Errorf(codes.InvalidArgument, "equipment_id cannot be `%d`", request.EquipmentId)
+	}
+
+	return nil
+}
+
+// validateGetRecipeForResourceRequest is a helper function that
+// validates the GetRecipeForResourceRequest RPC ensuring:
+//   - the request is not `nil`
+//   - the resource_id is valid (>= 1)
+func validateGetRecipeForResourceRequest(request *recipes.GetRecipeForResourceRequest) error {
+	if request == nil {
+		return status.Error(codes.InvalidArgument, "received a `nil` request")
+	}
+
+	if request.ResourceId < 1 {
+		return status.Errorf(codes.InvalidArgument, "resource_id cannot be `%d`", request.ResourceId)
 	}
 
 	return nil
