@@ -3,7 +3,7 @@ module github.com/diyerdo/diyerdo
 go 1.27.0
 
 require (
-	github.com/diyerdo/proto v0.0.0-20260912205138-71b907ec2b91
+	github.com/diyerdo/proto v0.0.0-20260913134144-1c089cbaca9b
 	github.com/dofusdude/dodugo v1.0.0
 	github.com/rs/zerolog v1.35.1
 	google.golang.org/grpc v1.83.2

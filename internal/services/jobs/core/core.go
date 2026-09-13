@@ -20,8 +20,11 @@
 package core
 
 import (
+	"sort"
+
 	"github.com/diyerdo/diyerdo/internal/shared/utils"
 	"github.com/diyerdo/proto/gen/go/proto/jobs/v1"
+	"github.com/dofusdude/dodugo"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -54,6 +57,165 @@ func (t *JobsCore) GetJobForItem(itemId int32) ([]jobs.Job, error) {
 	}
 
 	return dofusDBRecipesToJobs(dofusDBRecipes)
+}
+
+// GetJobsRequirementsForItem returns all the jobs and maximum required levels involved in crafting the given item
+func (t *JobsCore) GetJobsRequirementsForItem(itemId int32) ([]*jobs.JobRequirements, error) {
+	if itemId < 1 {
+		return nil, status.Errorf(codes.InvalidArgument, "itemId cannot be `%d`", itemId)
+	}
+
+	dodugoWrapper, err := utils.NewDodugoWrapper()
+	if err != nil {
+		return nil, err
+	}
+
+	// First find the item as an Equipment; if not found, find as a Resource
+	item, err := resolveItem(dodugoWrapper, itemId, "")
+	if err != nil {
+		return nil, err
+	}
+
+	// If the item exists but has no craft recipe, return empty requirements
+	if len(item.recipe) == 0 {
+		return []*jobs.JobRequirements{}, nil
+	}
+
+	maxLevelByJob := make(map[jobs.Job]int32)
+	visited := make(map[int32]bool)
+	visited[itemId] = true
+
+	// Job(s) for the target item itself
+	targetJobs, err := t.GetJobForItem(itemId)
+	if err != nil {
+		return nil, err
+	}
+	for _, job := range targetJobs {
+		if item.level > maxLevelByJob[job] {
+			maxLevelByJob[job] = item.level
+		}
+	}
+
+	// Recursively traverse ingredients
+	if err := t.traverseRecipeIngredients(item.recipe, visited, maxLevelByJob, dodugoWrapper); err != nil {
+		return nil, err
+	}
+
+	// Deterministic sorting by Job enum value
+	result := make([]*jobs.JobRequirements, 0, len(maxLevelByJob))
+	for job, level := range maxLevelByJob {
+		result = append(result, &jobs.JobRequirements{
+			Job:   job,
+			Level: level,
+		})
+	}
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Job < result[j].Job
+	})
+
+	return result, nil
+}
+
+// resolvedItem holds the level and recipe of a resolved item
+type resolvedItem struct {
+	level  int32
+	recipe []dodugo.Recipe
+}
+
+// resolveItem attempts to find an item by ID, trying Equipment first and Resource second
+// (or using the subtype hint when available)
+func resolveItem(dodugoWrapper *utils.DodugoWrapper, itemId int32, subtypeHint string) (*resolvedItem, error) {
+	if subtypeHint == "resources" {
+		res, err := dodugoWrapper.GetResource(itemId)
+		if err == nil && res != nil {
+			return &resolvedItem{
+				level:  res.GetLevel(),
+				recipe: res.GetRecipe(),
+			}, nil
+		}
+		if status.Code(err) != codes.NotFound {
+			return nil, err
+		}
+
+		equip, err := dodugoWrapper.GetEquipment(itemId)
+		if err == nil && equip != nil {
+			return &resolvedItem{
+				level:  equip.GetLevel(),
+				recipe: equip.GetRecipe(),
+			}, nil
+		}
+		if status.Code(err) == codes.NotFound {
+			return nil, status.Errorf(codes.NotFound, "no equipment or resource found with id '%d'", itemId)
+		}
+		return nil, err
+	}
+
+	// Default: Equipment first, Resource fallback
+	equip, err := dodugoWrapper.GetEquipment(itemId)
+	if err == nil && equip != nil {
+		return &resolvedItem{
+			level:  equip.GetLevel(),
+			recipe: equip.GetRecipe(),
+		}, nil
+	}
+	if status.Code(err) != codes.NotFound {
+		return nil, err
+	}
+
+	res, err := dodugoWrapper.GetResource(itemId)
+	if err == nil && res != nil {
+		return &resolvedItem{
+			level:  res.GetLevel(),
+			recipe: res.GetRecipe(),
+		}, nil
+	}
+	if status.Code(err) == codes.NotFound {
+		return nil, status.Errorf(codes.NotFound, "no equipment or resource found with id '%d'", itemId)
+	}
+	return nil, err
+}
+
+// traverseRecipeIngredients recursively inspects ingredients and collects jobs and levels
+func (t *JobsCore) traverseRecipeIngredients(
+	ingredients []dodugo.Recipe,
+	visited map[int32]bool,
+	maxLevelByJob map[jobs.Job]int32,
+	dodugoWrapper *utils.DodugoWrapper,
+) error {
+	for _, ing := range ingredients {
+		subId := ing.GetItemAnkamaId()
+		if subId < 1 || visited[subId] {
+			continue
+		}
+		visited[subId] = true
+
+		subItem, err := resolveItem(dodugoWrapper, subId, ing.GetItemSubtype())
+		if err != nil {
+			if status.Code(err) == codes.NotFound {
+				continue
+			}
+			return err
+		}
+
+		// If the ingredient has a recipe, it is craftable
+		if len(subItem.recipe) > 0 {
+			subJobs, err := t.GetJobForItem(subId)
+			if err != nil {
+				return err
+			}
+			for _, job := range subJobs {
+				if subItem.level > maxLevelByJob[job] {
+					maxLevelByJob[job] = subItem.level
+				}
+			}
+
+			if err := t.traverseRecipeIngredients(subItem.recipe, visited, maxLevelByJob, dodugoWrapper); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 // dofusDBRecipesToJobs converts a slice of utils.DofusDBRecipe into a slice of jobs.Job

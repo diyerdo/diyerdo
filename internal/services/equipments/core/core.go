@@ -160,7 +160,7 @@ func dodugoItemsToEquipments(items []dodugo.ListItem) ([]*equipments.Equipment, 
 
 	equipments := make([]*equipments.Equipment, len(items))
 	for i, item := range items {
-		equipment, err := models.NewEquipment(*item.AnkamaId, *item.Name, *item.Level, *item.ImageUrls.Icon)
+		equipment, err := models.NewEquipment(*item.AnkamaId, *item.Name, *item.Level, item.ImageUrls.Sd.Get())
 		if err != nil {
 			return nil, err
 		}

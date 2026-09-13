@@ -4,6 +4,16 @@ github.com/diyerdo/proto v0.0.0-20260912201645-0ff0c3fc84c1 h1:ex6IcF2jOMJdfVfaH
 github.com/diyerdo/proto v0.0.0-20260912201645-0ff0c3fc84c1/go.mod h1:0w2C2XwQnE+VYfQ7Z0tdZn79VpxgiPahasu72m7EHKw=
 github.com/diyerdo/proto v0.0.0-20260912205138-71b907ec2b91 h1:H2WGBJPQ082iRXycnb+oWko5l4JCL47+WV0mHhO+vPM=
 github.com/diyerdo/proto v0.0.0-20260912205138-71b907ec2b91/go.mod h1:0w2C2XwQnE+VYfQ7Z0tdZn79VpxgiPahasu72m7EHKw=
+github.com/diyerdo/proto v0.0.0-20260913123745-dd32669ae118 h1:Ech878Z53+GgnKhmAkvQs8eLdlGaRbkBfZHcsrnozZM=
+github.com/diyerdo/proto v0.0.0-20260913123745-dd32669ae118/go.mod h1:0w2C2XwQnE+VYfQ7Z0tdZn79VpxgiPahasu72m7EHKw=
+github.com/diyerdo/proto v0.0.0-20260913125626-1e694e5c068c h1:Q/GVxfg3ilu7tmRe6vwI1/bjF+RBzHiHutdIe+F2OnA=
+github.com/diyerdo/proto v0.0.0-20260913125626-1e694e5c068c/go.mod h1:0w2C2XwQnE+VYfQ7Z0tdZn79VpxgiPahasu72m7EHKw=
+github.com/diyerdo/proto v0.0.0-20260913130738-8524a059ba8f h1:ocM2PqfpK0PsaJN0K/xYjstYAddnnxxWG/D+lvFRccw=
+github.com/diyerdo/proto v0.0.0-20260913130738-8524a059ba8f/go.mod h1:0w2C2XwQnE+VYfQ7Z0tdZn79VpxgiPahasu72m7EHKw=
+github.com/diyerdo/proto v0.0.0-20260913131752-ec823cbf22c6 h1:4qYshbWGS43MAEa1Ycp/q6HdjpeQ7RUG+Q8Zk1QvUvc=
+github.com/diyerdo/proto v0.0.0-20260913131752-ec823cbf22c6/go.mod h1:0w2C2XwQnE+VYfQ7Z0tdZn79VpxgiPahasu72m7EHKw=
+github.com/diyerdo/proto v0.0.0-20260913134144-1c089cbaca9b h1:pF5It0DH4ifV+iCzInsXx6E/HwiIm6XYF0s+j01FIe8=
+github.com/diyerdo/proto v0.0.0-20260913134144-1c089cbaca9b/go.mod h1:0w2C2XwQnE+VYfQ7Z0tdZn79VpxgiPahasu72m7EHKw=
 github.com/dofusdude/dodugo v1.0.0 h1:wjNw2YmiaNYneGn9ZMlnHzJZIP5EurugNs7LmC3zrXc=
 github.com/dofusdude/dodugo v1.0.0/go.mod h1:R/MZWCsB/+GpFctfckhOWmqpCMgmGkB+YC3N3TS3n6Y=
 github.com/go-logr/logr v1.4.3 h1:CjnDlHq8ikf6E492q6eKboGOC0T8CDaOvkHCIg8idEI=

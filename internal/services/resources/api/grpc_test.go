@@ -16,13 +16,13 @@
 //
 // ---
 //
-// Tests for recipes gRPC service
+// Tests for resources gRPC service
 package api
 
 import (
 	"testing"
 
-	"github.com/diyerdo/proto/gen/go/proto/recipes/v1"
+	"github.com/diyerdo/proto/gen/go/proto/resources/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -34,65 +34,10 @@ func TestNewServerNilCore(t *testing.T) {
 	}
 }
 
-func TestValidateGetRecipeForEquipmentRequest(t *testing.T) {
+func TestValidateGetResourceFromIdRequest(t *testing.T) {
 	tests := []struct {
 		name      string
-		request   *recipes.GetRecipeForEquipmentRequest
-		expectErr bool
-	}{
-		{
-			name:      "nil request",
-			request:   nil,
-			expectErr: true,
-		},
-		{
-			name: "invalid equipment_id zero",
-			request: &recipes.GetRecipeForEquipmentRequest{
-				EquipmentId: 0,
-			},
-			expectErr: true,
-		},
-		{
-			name: "invalid equipment_id negative",
-			request: &recipes.GetRecipeForEquipmentRequest{
-				EquipmentId: -10,
-			},
-			expectErr: true,
-		},
-		{
-			name: "valid request",
-			request: &recipes.GetRecipeForEquipmentRequest{
-				EquipmentId: 2411,
-			},
-			expectErr: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := validateGetRecipeForEquipmentRequest(tt.request)
-			if tt.expectErr {
-				if err == nil {
-					t.Fatalf("expected error, got nil")
-				}
-				st, ok := status.FromError(err)
-				if !ok || st.Code() != codes.InvalidArgument {
-					t.Errorf("expected InvalidArgument code, got %v", err)
-				}
-				return
-			}
-
-			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
-			}
-		})
-	}
-}
-
-func TestValidateGetRecipeForResourceRequest(t *testing.T) {
-	tests := []struct {
-		name      string
-		request   *recipes.GetRecipeForResourceRequest
+		request   *resources.GetResourceFromIdRequest
 		expectErr bool
 	}{
 		{
@@ -102,22 +47,22 @@ func TestValidateGetRecipeForResourceRequest(t *testing.T) {
 		},
 		{
 			name: "invalid resource_id zero",
-			request: &recipes.GetRecipeForResourceRequest{
+			request: &resources.GetResourceFromIdRequest{
 				ResourceId: 0,
 			},
 			expectErr: true,
 		},
 		{
 			name: "invalid resource_id negative",
-			request: &recipes.GetRecipeForResourceRequest{
-				ResourceId: -10,
+			request: &resources.GetResourceFromIdRequest{
+				ResourceId: -5,
 			},
 			expectErr: true,
 		},
 		{
 			name: "valid request",
-			request: &recipes.GetRecipeForResourceRequest{
-				ResourceId: 2411,
+			request: &resources.GetResourceFromIdRequest{
+				ResourceId: 289,
 			},
 			expectErr: false,
 		},
@@ -125,7 +70,7 @@ func TestValidateGetRecipeForResourceRequest(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validateGetRecipeForResourceRequest(tt.request)
+			err := validateGetResourceFromIdRequest(tt.request)
 			if tt.expectErr {
 				if err == nil {
 					t.Fatalf("expected error, got nil")

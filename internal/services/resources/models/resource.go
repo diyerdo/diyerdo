@@ -16,35 +16,35 @@
 //
 // ---
 //
-// # Equipment model declaration
+// # Resource model declaration
 //
 // The base model declaration can be found at
-// https://github.com/diyerdo/proto/blob/main/proto/equipments/v1/equipments.proto
+// https://github.com/diyerdo/proto/blob/main/proto/resources/v1/resources.proto
 package models
 
 import (
-	"github.com/diyerdo/proto/gen/go/proto/equipments/v1"
+	"github.com/diyerdo/proto/gen/go/proto/resources/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-// Equipment represents an Equipment as declared in the proto file
-type Equipment struct {
+// Resource represents a Resource as declared in the proto file
+type Resource struct {
 	Id       int32
 	Name     string
 	Level    int32
 	ImageUrl *string
 }
 
-// NewEquipmentDefault returns a new Equipment with default values
-func NewEquipmentDefault() *Equipment {
-	return &Equipment{}
+// NewResourceDefault returns a new Resource with default values
+func NewResourceDefault() *Resource {
+	return &Resource{}
 }
 
-// NewEquipment returns a new Equipment instance
+// NewResource returns a new Resource instance
 //
 // Returns an error if one of the parameters is invalid
-func NewEquipment(id int32, name string, level int32, imageUrl *string) (*Equipment, error) {
+func NewResource(id int32, name string, level int32, imageUrl *string) (*Resource, error) {
 	if id < 1 {
 		return nil, status.Errorf(codes.InvalidArgument, "id cannot be `%d`", id)
 	}
@@ -57,7 +57,7 @@ func NewEquipment(id int32, name string, level int32, imageUrl *string) (*Equipm
 		return nil, status.Errorf(codes.InvalidArgument, "level cannot be `%d`", level)
 	}
 
-	return &Equipment{
+	return &Resource{
 		Id:       id,
 		Name:     name,
 		Level:    level,
@@ -65,12 +65,17 @@ func NewEquipment(id int32, name string, level int32, imageUrl *string) (*Equipm
 	}, nil
 }
 
-// ToProto converts the Equipment model to the protobuf Equipment
-func (t *Equipment) ToProto() *equipments.Equipment {
-	return &equipments.Equipment{
+// ToProto converts the Resource model to the protobuf Resource
+func (t *Resource) ToProto() *resources.Resource {
+	var imageUrl string
+	if t.ImageUrl != nil {
+		imageUrl = *t.ImageUrl
+	}
+
+	return &resources.Resource{
 		Id:       t.Id,
 		Name:     t.Name,
 		Level:    t.Level,
-		ImageUrl: t.ImageUrl,
+		ImageUrl: imageUrl,
 	}
 }

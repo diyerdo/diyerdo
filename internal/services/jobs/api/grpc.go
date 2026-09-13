@@ -57,11 +57,41 @@ func (t *server) GetJobForItem(ctx context.Context, request *jobs.GetJobForItemR
 	return &jobs.GetJobForItemResponse{Jobs: jobsList}, nil
 }
 
+// GetJobsRequirementsForItem returns the job requirements to craft the given item
+func (t *server) GetJobsRequirementsForItem(ctx context.Context, request *jobs.GetJobsRequirementsForItemRequest) (*jobs.GetJobsRequirementsForItemResponse, error) {
+	if err := validateGetJobsRequirementsForItemRequest(request); err != nil {
+		return nil, err
+	}
+
+	jobRequirements, err := t.core.GetJobsRequirementsForItem(request.ItemId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &jobs.GetJobsRequirementsForItemResponse{JobRequirements: jobRequirements}, nil
+}
+
 // validateGetJobForItemRequest is a helper function that
 // validates the GetJobForItemRequest RPC ensuring:
 //   - the request is not `nil`
 //   - the item_id is valid (>= 1)
 func validateGetJobForItemRequest(request *jobs.GetJobForItemRequest) error {
+	if request == nil {
+		return status.Error(codes.InvalidArgument, "received a `nil` request")
+	}
+
+	if request.ItemId < 1 {
+		return status.Errorf(codes.InvalidArgument, "item_id cannot be `%d`", request.ItemId)
+	}
+
+	return nil
+}
+
+// validateGetJobsRequirementsForItemRequest is a helper function that
+// validates the GetJobsRequirementsForItemRequest RPC ensuring:
+//   - the request is not `nil`
+//   - the item_id is valid (>= 1)
+func validateGetJobsRequirementsForItemRequest(request *jobs.GetJobsRequirementsForItemRequest) error {
 	if request == nil {
 		return status.Error(codes.InvalidArgument, "received a `nil` request")
 	}

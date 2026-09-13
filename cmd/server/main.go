@@ -25,9 +25,11 @@ import (
 	equipmentsApi "github.com/diyerdo/diyerdo/internal/services/equipments/api"
 	jobsApi "github.com/diyerdo/diyerdo/internal/services/jobs/api"
 	recipesApi "github.com/diyerdo/diyerdo/internal/services/recipes/api"
+	resourcesApi "github.com/diyerdo/diyerdo/internal/services/resources/api"
 	"github.com/diyerdo/proto/gen/go/proto/equipments/v1"
 	"github.com/diyerdo/proto/gen/go/proto/jobs/v1"
 	"github.com/diyerdo/proto/gen/go/proto/recipes/v1"
+	"github.com/diyerdo/proto/gen/go/proto/resources/v1"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/rs/zerolog/pkgerrors"
@@ -73,6 +75,10 @@ func registerServicesGrpc(server *grpc.Server) {
 	// Jobs service
 	jobsService := instanciateService(jobsApi.NewJobsService)
 	jobs.RegisterJobsServiceServer(server, jobsService.Server)
+
+	// Resources service
+	resourcesService := instanciateService(resourcesApi.NewResourcesService)
+	resources.RegisterResourcesServiceServer(server, resourcesService.Server)
 }
 
 // instanciateService is a helper function to instanciate a service. It returns

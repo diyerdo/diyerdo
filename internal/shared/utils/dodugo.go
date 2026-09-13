@@ -22,8 +22,6 @@ package utils
 import (
 	"context"
 
-	"github.com/diyerdo/diyerdo/internal/services/equipments/models"
-	"github.com/diyerdo/proto/gen/go/proto/equipments/v1"
 	"github.com/dofusdude/dodugo"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -94,8 +92,8 @@ func (t *DodugoWrapper) GetEquipmentByNameAndCategory(name string, category stri
 	return items, nil
 }
 
-// GetEquipmentRecipe gets an equipment item's recipe by its ankama id
-func (t *DodugoWrapper) GetEquipmentRecipe(ankamaId int32) ([]dodugo.Recipe, error) {
+// GetEquipment gets an equipment item by its ankama id
+func (t *DodugoWrapper) GetEquipment(ankamaId int32) (*dodugo.Weapon, error) {
 	item, resp, err := t.client.
 		EquipmentAPI.
 		GetItemsEquipmentSingle(context.Background(), "fr", ankamaId, "dofus3").
@@ -135,5 +133,69 @@ func (t *DodugoWrapper) GetEquipmentRecipe(ankamaId int32) ([]dodugo.Recipe, err
 		)
 	}
 
+	return item, nil
+}
+
+// GetEquipmentRecipe gets an equipment item's recipe by its ankama id
+func (t *DodugoWrapper) GetEquipmentRecipe(ankamaId int32) ([]dodugo.Recipe, error) {
+	item, err := t.GetEquipment(ankamaId)
+	if err != nil {
+		return nil, err
+	}
+
 	return item.GetRecipe(), nil
+}
+
+// GetResource gets a resource item by its ankama id
+func (t *DodugoWrapper) GetResource(ankamaId int32) (*dodugo.Resource, error) {
+	resource, resp, err := t.client.
+		ResourcesAPI.
+		GetItemsResourcesSingle(context.Background(), "fr", ankamaId, "dofus3").
+		Execute()
+
+	if err != nil {
+		if resp != nil && resp.StatusCode == 404 {
+			return nil, status.Errorf(
+				codes.NotFound,
+				"no resource found with id '%d'",
+				ankamaId,
+			)
+		}
+
+		return nil, status.Errorf(
+			codes.Internal,
+			"an error occured while trying to retrieve resource '%d': %v",
+			ankamaId,
+			err,
+		)
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, status.Errorf(
+			codes.Internal,
+			"an error occured while trying to retrieve resource '%d' ; status code %s",
+			ankamaId,
+			resp.Status,
+		)
+	}
+
+	if resource == nil {
+		return nil, status.Errorf(
+			codes.NotFound,
+			"no resource found with id '%d'",
+			ankamaId,
+		)
+	}
+
+	return resource, nil
+}
+
+// GetResourceRecipe gets a resource item's recipe by its ankama id
+func (t *DodugoWrapper) GetResourceRecipe(ankamaId int32) ([]dodugo.Recipe, error) {
+	resource, err := t.GetResource(ankamaId)
+	if err != nil {
+		return nil, err
+	}
+
+	return resource.GetRecipe(), nil
 }

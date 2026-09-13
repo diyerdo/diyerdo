@@ -56,10 +56,34 @@ func TestGetRecipeForEquipmentInvalidId(t *testing.T) {
 	}
 }
 
+func TestGetRecipeForResourceInvalidId(t *testing.T) {
+	c, err := NewRecipesCore()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	invalidIds := []int32{0, -1, -100}
+	for _, id := range invalidIds {
+		_, err := c.GetRecipeForResource(id)
+		if err == nil {
+			t.Errorf("expected error for resourceId %d, got nil", id)
+		}
+		st, ok := status.FromError(err)
+		if !ok || st.Code() != codes.InvalidArgument {
+			t.Errorf("expected InvalidArgument error for id %d, got %v", id, err)
+		}
+	}
+}
+
 func TestDodugoRecipesToRecipeModel(t *testing.T) {
 	id := int32(100)
 	subtype := "resources"
 	qty := int32(4)
+
+	ttTests := []struct {
+		name string
+	}{}
+	_ = ttTests
 
 	t.Run("valid items", func(t *testing.T) {
 		items := []dodugo.Recipe{
