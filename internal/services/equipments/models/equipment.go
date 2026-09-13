@@ -30,10 +30,10 @@ import (
 
 // Equipment represents an Equipment as declared in the proto file
 type Equipment struct {
-	Id      int32
-	Name    string
-	Level   int32
-	IconUrl string
+	Id       int32
+	Name     string
+	Level    int32
+	ImageUrl *string
 }
 
 // NewEquipmentDefault returns a new Equipment with default values
@@ -44,7 +44,7 @@ func NewEquipmentDefault() *Equipment {
 // NewEquipment returns a new Equipment instance
 //
 // Returns an error if one of the parameters is invalid
-func NewEquipment(id int32, name string, level int32, iconUrl string) (*Equipment, error) {
+func NewEquipment(id int32, name string, level int32, imageUrl *string) (*Equipment, error) {
 	if id < 1 {
 		return nil, status.Errorf(codes.InvalidArgument, "id cannot be `%d`", id)
 	}
@@ -57,24 +57,20 @@ func NewEquipment(id int32, name string, level int32, iconUrl string) (*Equipmen
 		return nil, status.Errorf(codes.InvalidArgument, "level cannot be `%d`", level)
 	}
 
-	if len(iconUrl) == 0 {
-		return nil, status.Errorf(codes.InvalidArgument, "iconUrl cannot be empty")
-	}
-
 	return &Equipment{
-		Id:      id,
-		Name:    name,
-		Level:   level,
-		IconUrl: iconUrl,
+		Id:       id,
+		Name:     name,
+		Level:    level,
+		ImageUrl: imageUrl,
 	}, nil
 }
 
 // ToProto converts the Equipment model to the protobuf Equipment
 func (t *Equipment) ToProto() *equipments.Equipment {
 	return &equipments.Equipment{
-		Id:      t.Id,
-		Name:    t.Name,
-		Level:   t.Level,
-		IconUrl: t.IconUrl,
+		Id:       t.Id,
+		Name:     t.Name,
+		Level:    t.Level,
+		ImageUrl: t.ImageUrl,
 	}
 }
