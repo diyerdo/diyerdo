@@ -92,8 +92,8 @@ func (t *DodugoWrapper) GetEquipmentByNameAndCategory(name string, category stri
 	return items, nil
 }
 
-// GetEquipmentRecipe gets an equipment item's recipe by its ankama id
-func (t *DodugoWrapper) GetEquipmentRecipe(ankamaId int32) ([]dodugo.Recipe, error) {
+// GetEquipment gets an equipment item by its ankama id
+func (t *DodugoWrapper) GetEquipment(ankamaId int32) (*dodugo.Weapon, error) {
 	item, resp, err := t.client.
 		EquipmentAPI.
 		GetItemsEquipmentSingle(context.Background(), "fr", ankamaId, "dofus3").
@@ -131,6 +131,16 @@ func (t *DodugoWrapper) GetEquipmentRecipe(ankamaId int32) ([]dodugo.Recipe, err
 			"no equipment found with id '%d'",
 			ankamaId,
 		)
+	}
+
+	return item, nil
+}
+
+// GetEquipmentRecipe gets an equipment item's recipe by its ankama id
+func (t *DodugoWrapper) GetEquipmentRecipe(ankamaId int32) ([]dodugo.Recipe, error) {
+	item, err := t.GetEquipment(ankamaId)
+	if err != nil {
+		return nil, err
 	}
 
 	return item.GetRecipe(), nil
