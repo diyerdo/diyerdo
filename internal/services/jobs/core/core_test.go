@@ -57,6 +57,25 @@ func TestGetJobForItemInvalidId(t *testing.T) {
 	}
 }
 
+func TestGetJobsRequirementsForItemInvalidId(t *testing.T) {
+	c, err := NewJobsCore()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	invalidIds := []int32{0, -1, -100}
+	for _, id := range invalidIds {
+		_, err := c.GetJobsRequirementsForItem(id)
+		if err == nil {
+			t.Errorf("expected error for itemId %d, got nil", id)
+		}
+		st, ok := status.FromError(err)
+		if !ok || st.Code() != codes.InvalidArgument {
+			t.Errorf("expected InvalidArgument error for id %d, got %v", id, err)
+		}
+	}
+}
+
 func TestGetJobForItemLive(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping live network test in short mode")
@@ -82,6 +101,90 @@ func TestGetJobForItemLive(t *testing.T) {
 	if len(uncraftableJobs) != 0 {
 		t.Errorf("expected empty jobs list for uncraftable item, got %v", uncraftableJobs)
 	}
+}
+
+func TestGetJobsRequirementsForItemLive(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping live network test in short mode")
+	}
+
+	c, err := NewJobsCore()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	t.Run("Equipment with single job (Gelano)", func(t *testing.T) {
+		reqs, err := c.GetJobsRequirementsForItem(2469) // Gelano
+		if err != nil {
+			t.Fatalf("unexpected error calling GetJobsRequirementsForItem: %v", err)
+		}
+		if len(reqs) != 1 {
+			t.Fatalf("expected 1 job requirement for Gelano, got %d", len(reqs))
+		}
+		if reqs[0].Job != jobs.Job_JOB_JEWELLER || reqs[0].Level != 60 {
+			t.Errorf("expected Jeweller Lv 60, got Job=%v Level=%d", reqs[0].Job, reqs[0].Level)
+		}
+	})
+
+	t.Run("Uncraftable item (Dofus Cawotte)", func(t *testing.T) {
+		reqs, err := c.GetJobsRequirementsForItem(972) // Dofus Cawotte
+		if err != nil {
+			t.Fatalf("unexpected error calling GetJobsRequirementsForItem for uncraftable item: %v", err)
+		}
+		if len(reqs) != 0 {
+			t.Errorf("expected empty job requirements for uncraftable item, got %v", reqs)
+		}
+	})
+
+	t.Run("Item not found", func(t *testing.T) {
+		_, err := c.GetJobsRequirementsForItem(99999999)
+		if err == nil {
+			t.Fatalf("expected error for nonexistent item, got nil")
+		}
+		st, ok := status.FromError(err)
+		if !ok || st.Code() != codes.NotFound {
+			t.Errorf("expected NotFound error, got %v", err)
+		}
+	})
+
+	t.Run("Craftable resource (Planche de Gravure)", func(t *testing.T) {
+		reqs, err := c.GetJobsRequirementsForItem(16496) // Planche de Gravure
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(reqs) != 1 {
+			t.Fatalf("expected 1 job requirement, got %d", len(reqs))
+		}
+		if reqs[0].Job != jobs.Job_JOB_LUMBERJACK || reqs[0].Level != 140 {
+			t.Errorf("expected Lumberjack Lv 140, got Job=%v Level=%d", reqs[0].Job, reqs[0].Level)
+		}
+	})
+
+	t.Run("Recursive craft with sub-ingredients (Outil de gravure)", func(t *testing.T) {
+		reqs, err := c.GetJobsRequirementsForItem(23578) // Outil de gravure (uses Planche de Gravure which uses Tourmaline/alloy)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(reqs) != 3 {
+			t.Fatalf("expected 3 job requirements (Smith, Lumberjack, Miner), got %d: %v", len(reqs), reqs)
+		}
+
+		expectedJobs := map[jobs.Job]int32{
+			jobs.Job_JOB_LUMBERJACK: 140,
+			jobs.Job_JOB_MINER:      50,
+			jobs.Job_JOB_SMITH:      140,
+		}
+		for _, r := range reqs {
+			expectedLevel, ok := expectedJobs[r.Job]
+			if !ok {
+				t.Errorf("unexpected job %v in requirements", r.Job)
+				continue
+			}
+			if r.Level != expectedLevel {
+				t.Errorf("expected job %v to have level %d, got %d", r.Job, expectedLevel, r.Level)
+			}
+		}
+	})
 }
 
 func TestDofusDBJobIdToJob(t *testing.T) {
