@@ -88,3 +88,58 @@ func TestValidateGetRecipeForEquipmentRequest(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateGetRecipeForResourceRequest(t *testing.T) {
+	tests := []struct {
+		name      string
+		request   *recipes.GetRecipeForResourceRequest
+		expectErr bool
+	}{
+		{
+			name:      "nil request",
+			request:   nil,
+			expectErr: true,
+		},
+		{
+			name: "invalid resource_id zero",
+			request: &recipes.GetRecipeForResourceRequest{
+				ResourceId: 0,
+			},
+			expectErr: true,
+		},
+		{
+			name: "invalid resource_id negative",
+			request: &recipes.GetRecipeForResourceRequest{
+				ResourceId: -10,
+			},
+			expectErr: true,
+		},
+		{
+			name: "valid request",
+			request: &recipes.GetRecipeForResourceRequest{
+				ResourceId: 2411,
+			},
+			expectErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateGetRecipeForResourceRequest(tt.request)
+			if tt.expectErr {
+				if err == nil {
+					t.Fatalf("expected error, got nil")
+				}
+				st, ok := status.FromError(err)
+				if !ok || st.Code() != codes.InvalidArgument {
+					t.Errorf("expected InvalidArgument code, got %v", err)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+		})
+	}
+}
