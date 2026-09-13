@@ -63,6 +63,34 @@ func (t *RecipesCore) GetRecipeForEquipment(equipmentId int32) ([]*recipes.Recip
 	return []*recipes.Recipe{recipeModel.ToProto()}, nil
 }
 
+// GetRecipeForResource returns the recipe for the given resource ID
+func (t *RecipesCore) GetRecipeForResource(resourceId int32) ([]*recipes.Recipe, error) {
+	if resourceId < 1 {
+		return nil, status.Errorf(codes.InvalidArgument, "resourceId cannot be `%d`", resourceId)
+	}
+
+	dodugoWrapper, err := utils.NewDodugoWrapper()
+	if err != nil {
+		return nil, err
+	}
+
+	dodugoRecipes, err := dodugoWrapper.GetResourceRecipe(resourceId)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(dodugoRecipes) == 0 {
+		return []*recipes.Recipe{}, nil
+	}
+
+	recipeModel, err := dodugoRecipesToRecipeModel(dodugoRecipes)
+	if err != nil {
+		return nil, err
+	}
+
+	return []*recipes.Recipe{recipeModel.ToProto()}, nil
+}
+
 // dodugoRecipesToRecipeModel converts a slice of dodugo.Recipe into a models.Recipe
 func dodugoRecipesToRecipeModel(items []dodugo.Recipe) (*models.Recipe, error) {
 	recipeItems := make([]*models.RecipeItem, len(items))
