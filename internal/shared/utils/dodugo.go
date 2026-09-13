@@ -22,8 +22,6 @@ package utils
 import (
 	"context"
 
-	"github.com/diyerdo/diyerdo/internal/services/equipments/models"
-	"github.com/diyerdo/proto/gen/go/proto/equipments/v1"
 	"github.com/dofusdude/dodugo"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -136,4 +134,48 @@ func (t *DodugoWrapper) GetEquipmentRecipe(ankamaId int32) ([]dodugo.Recipe, err
 	}
 
 	return item.GetRecipe(), nil
+}
+
+// GetResource gets a resource item by its ankama id
+func (t *DodugoWrapper) GetResource(ankamaId int32) (*dodugo.Resource, error) {
+	resource, resp, err := t.client.
+		ResourcesAPI.
+		GetItemsResourcesSingle(context.Background(), "fr", ankamaId, "dofus3").
+		Execute()
+
+	if err != nil {
+		if resp != nil && resp.StatusCode == 404 {
+			return nil, status.Errorf(
+				codes.NotFound,
+				"no resource found with id '%d'",
+				ankamaId,
+			)
+		}
+
+		return nil, status.Errorf(
+			codes.Internal,
+			"an error occured while trying to retrieve resource '%d': %v",
+			ankamaId,
+			err,
+		)
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, status.Errorf(
+			codes.Internal,
+			"an error occured while trying to retrieve resource '%d' ; status code %s",
+			ankamaId,
+			resp.Status,
+		)
+	}
+
+	if resource == nil {
+		return nil, status.Errorf(
+			codes.NotFound,
+			"no resource found with id '%d'",
+			ankamaId,
+		)
+	}
+
+	return resource, nil
 }
