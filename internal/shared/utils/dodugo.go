@@ -179,3 +179,13 @@ func (t *DodugoWrapper) GetResource(ankamaId int32) (*dodugo.Resource, error) {
 
 	return resource, nil
 }
+
+// GetResourceRecipe gets a resource item's recipe by its ankama id
+func (t *DodugoWrapper) GetResourceRecipe(ankamaId int32) ([]dodugo.Recipe, error) {
+	resource, err := t.GetResource(ankamaId)
+	if err != nil {
+		return nil, err
+	}
+
+	return resource.GetRecipe(), nil
+}
